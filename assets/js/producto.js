@@ -5,6 +5,7 @@
 
 import { obtenerProductos } from "./datos.js";
 import { URL_PRODUCTOS } from "./config.js";
+import { crearLinkWhatsapp } from "./whatsapp.js";
 import { crearTarjetaProducto, formatearPrecio } from "./render.js";
 import { agregarAlCarrito, maximoStock } from "./funciones-carrito.js";
 import { actualizarContadorHeader, escucharBotonesAgregar } from "./agregar.js";
@@ -15,8 +16,6 @@ const BADGE_CLASES = {
   "Sin azúcar": "badge--sin-azucar",
   "Integral": "badge--integral",
 };
-
-const NUMERO_WHATSAPP = "5493510000000";
 
 const detalle = document.getElementById("detalle-producto");
 const migaCategoria = document.getElementById("miga-categoria");
@@ -159,8 +158,7 @@ function inicializarEventos(producto) {
   mostrarOpcionesEnvio(inputCp.value);
 
   // Evento: consulta por WhatsApp con el nombre del producto
-  const texto = encodeURIComponent(`Hola Nutrite! Quiero consultar por: ${producto.nombre}`);
-  document.getElementById("boton-whatsapp").href = `https://wa.me/${NUMERO_WHATSAPP}?text=${texto}`;
+  document.getElementById("boton-whatsapp").href = crearLinkWhatsapp(`Hola Nutrite! Quiero consultar por: ${producto.nombre}`);
 
   if (producto.stock.estado === "sin-stock") return;
 

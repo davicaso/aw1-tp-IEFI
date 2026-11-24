@@ -1,0 +1,10 @@
+{
+  "name": "nutrite-dietetica",
+  "version": "1.0.0",
+  "description": "Tienda online de Nutrite Dietética - IEFI Aplicaciones Web 1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}

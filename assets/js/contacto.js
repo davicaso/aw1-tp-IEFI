@@ -1,7 +1,7 @@
-// Contacto — validación del formulario y confirmación de envío.
-// No hay backend: el mensaje se valida y se muestra una confirmación.
+// Contacto — validación del formulario y envío del mensaje por WhatsApp.
 
 import { actualizarContadorHeader } from "./agregar.js";
+import { crearLinkWhatsapp, armarMensajeContacto } from "./whatsapp.js";
 
 const form = document.getElementById("form-contacto");
 const mensajeEstado = document.getElementById("contacto-estado");
@@ -51,8 +51,17 @@ function inicializarEventos() {
       return;
     }
 
-    const nombre = form.elements.nombre.value.trim().split(" ")[0];
-    mensajeEstado.textContent = `¡Gracias, ${nombre}! Recibimos tu mensaje y te respondemos a la brevedad.`;
+    const f = form.elements;
+    const link = crearLinkWhatsapp(armarMensajeContacto({
+      nombre: f.nombre.value.trim(),
+      email: f.email.value.trim(),
+      motivo: f.motivo.value,
+      mensaje: f.mensaje.value.trim(),
+    }));
+    window.open(link, "_blank");
+
+    const nombre = f.nombre.value.trim().split(" ")[0];
+    mensajeEstado.textContent = `¡Gracias, ${nombre}! Abrimos WhatsApp para enviar tu mensaje. Te respondemos a la brevedad.`;
     mensajeEstado.classList.remove("is-error");
     form.reset();
   });

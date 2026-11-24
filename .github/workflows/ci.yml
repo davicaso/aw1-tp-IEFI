@@ -1,0 +1,26 @@
+# CI: corre los tests unitarios en cada push y en cada pull request a main.
+# CD: Vercel está conectado al repo y publica automáticamente lo que entra a main.
+# Con la regla de protección de la rama main, un pull request solo se puede
+# fusionar (y por lo tanto desplegar) si este workflow termina en verde.
+name: CI - Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Ejecutar tests unitarios
+        run: npm test

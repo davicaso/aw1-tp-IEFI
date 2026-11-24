@@ -1,5 +1,6 @@
 import { obtenerProductos } from './datos.js'
 import { URL_PRODUCTOS } from './config.js'
+import { crearLinkWhatsapp, armarMensajePedido } from './whatsapp.js'
 import {
     envios,
     planesCuotas,
@@ -226,7 +227,12 @@ function mostrarOpcionesEntrega() {
 }
 
 function actualizarCamposDireccion() {
-    camposDireccion.hidden = leerEnvio() == 'retiro'
+    const esRetiro = leerEnvio() == 'retiro'
+    camposDireccion.hidden = esRetiro
+    // Los campos deshabilitados no se validan por HTML (required/pattern)
+    camposDireccion.querySelectorAll('input').forEach((input) => {
+        input.disabled = esRetiro
+    })
 }
 
 // Los datos del cliente se insertan con innerHTML: se escapan para evitar inyección de HTML
@@ -251,9 +257,28 @@ function mostrarConfirmacion() {
         direccion = escaparHtml(datosEntrega.calle + ', ' + datosEntrega.ciudad + ' (CP ' + datosEntrega.cp + ')')
     }
 
+    // Envío del pedido por WhatsApp
+    const items = carrito.map((item) => {
+        return { nombre: buscarProducto(productos, item.id).nombre, cantidad: item.cantidad }
+    })
+    let textoEntrega = envios[leerEnvio()].nombre
+    if (leerEnvio() != 'retiro') {
+        textoEntrega += ' - ' + datosEntrega.calle + ', ' + datosEntrega.ciudad + ' (CP ' + datosEntrega.cp + ')'
+    }
+    const linkWhatsapp = crearLinkWhatsapp(armarMensajePedido({
+        numeroPedido,
+        items,
+        total: formatearPrecio(totalFinal),
+        cliente: datosCliente,
+        entrega: textoEntrega,
+        pago: nombresMedios[medioPago]
+    }))
+    window.open(linkWhatsapp, '_blank')
+
     paneles[3].innerHTML = `
     <h1 class="checkout__titulo">¡Gracias por tu compra, ${escaparHtml(datosCliente.nombre.split(' ')[0])}!</h1>
-    <p>Tu pedido <strong>${numeroPedido}</strong> fue registrado. Te enviamos el detalle a <strong>${escaparHtml(datosCliente.email)}</strong>.</p>
+    <p>Tu pedido <strong>${numeroPedido}</strong> fue registrado. Abrimos WhatsApp para que nos envíes el detalle y confirmemos la entrega.</p>
+    <p>Si no se abrió, tocá el botón: <a class="btn btn--whatsapp" href="${linkWhatsapp}" target="_blank" rel="noopener">Enviar pedido por WhatsApp</a></p>
     <div class="resumen u-mt-4">
         <div class="resumen__linea"><span>Entrega</span><span>${envios[leerEnvio()].nombre}</span></div>
         <div class="resumen__linea"><span>Dirección</span><span>${direccion}</span></div>
@@ -342,7 +367,18 @@ function mostrarCarritoVacio() {
 }
 
 async function iniciar() {
-    productos = await obtenerProductos(URL_PRODUCTOS)
+    try {
+        productos = await obtenerProductos(URL_PRODUCTOS)
+    } catch (error) {
+        console.error(error)
+        paneles.forEach((panel) => {
+            panel.hidden = true
+        })
+        paneles[3].hidden = false
+        paneles[3].innerHTML = '<p>No pudimos cargar los productos. Recargá la página en unos segundos.</p>'
+        resumenPedido.style.display = 'none'
+        return
+    }
     subtotal = calcularSubtotal(carrito, productos)
     contadorProductos.textContent = contarProductos(carrito)
     inicializarEventos()

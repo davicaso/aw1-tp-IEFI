@@ -172,7 +172,13 @@ function inicializarEventos() {
 }
 
 async function iniciar() {
-    productos = await obtenerProductos(URL_PRODUCTOS)
+    try {
+        productos = await obtenerProductos(URL_PRODUCTOS)
+    } catch (error) {
+        console.error(error)
+        document.querySelector('main').insertAdjacentHTML('afterbegin', '<p class="l-contenedor u-mt-4">No pudimos cargar los productos. Recargá la página en unos segundos.</p>')
+        return
+    }
     inicializarEventos()
     actualizarCarrito()
 }
