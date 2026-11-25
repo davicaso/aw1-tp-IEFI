@@ -18,7 +18,7 @@ export function ordenarProductos(productos, criterio) {
   const copia = [...productos];
 
   switch (criterio) {
-    case "Menor precioX":
+    case "Menor precio":
       return copia.sort((a, b) => a.precio - b.precio);
     case "Mayor precio":
       return copia.sort((a, b) => b.precio - a.precio);
